@@ -1,0 +1,10 @@
+spring:
+  canal:
+    enabled: true
+    log-enabled: true
+    host: 127.0.0.1
+    port: 11111
+    destinations: test
+    subscribe: ".*\\..*"
+server:
+  port: 8888

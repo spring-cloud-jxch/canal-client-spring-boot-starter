@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: canal-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_USER: canal
+      MYSQL_PASSWORD: canal123456
+      MYSQL_DATABASE: testdb
+    ports:
+      - "13306:3306"
+    command:
+      # 启用binlog并设置server-id
+      --default-authentication-plugin=mysql_native_password
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog_format=ROW
+      --binlog_row_image=full
+      --gtid_mode=ON
+      --enforce-gtid-consistency=ON
+#    volumes:
+#      - ./mysql-data:/var/lib/mysql
+#    restart: always
+
+  canal-server:
+    image: canal/canal-server:v1.1.8
+    container_name: canal-server
+    depends_on:
+      - mysql
+    ports:
+      - "11111:11111"
+    environment:
+      - canal.destinations=test
+      - canal.instance.master.address=mysql:3306
+      - canal.instance.dbUsername=root
+      - canal.instance.dbPassword=root123456
+      - canal.instance.filter.regex=.*\..*
+#    volumes:
+#      - ./canal/conf:/home/admin/canal-server/conf
+#      - ./canal/logs:/home/admin/canal-server/logs
+#    restart: always
