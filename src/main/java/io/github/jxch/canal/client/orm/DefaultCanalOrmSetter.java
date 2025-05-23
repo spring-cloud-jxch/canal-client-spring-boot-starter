@@ -1,11 +1,9 @@
 package io.github.jxch.canal.client.orm;
 
-import io.github.jxch.canal.client.reflection.CanalReflection;
+import io.github.jxch.canal.client.util.CanalDateUtil;
+import io.github.jxch.canal.client.util.CanalSpringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -20,9 +18,8 @@ import java.util.Objects;
 
 @Order
 @Component
-public class DefaultCanalOrmSetter implements CanalOrmSetter, ApplicationContextAware {
+public class DefaultCanalOrmSetter implements CanalOrmSetter {
     private static final Logger log = LoggerFactory.getLogger(DefaultCanalOrmSetter.class);
-    private static ApplicationContext applicationContext;
 
     @Override
     public boolean support(Class<?> clazz, Field field, Object value, JDBCType jdbcType, String valueOriginal) {
@@ -34,7 +31,7 @@ public class DefaultCanalOrmSetter implements CanalOrmSetter, ApplicationContext
         CanalSetter canalSetter = field.getAnnotation(CanalSetter.class);
         try {
             if (Objects.nonNull(canalSetter)) {
-                CanalOrmSetter setterCustom = applicationContext.getBean(canalSetter.setter());
+                CanalOrmSetter setterCustom = CanalSpringUtil.getBean(canalSetter.setter());
                 if (setterCustom.support(clazz, field, value, jdbcType, valueOriginal)) {
                     if (!setterCustom.getClass().equals(this.getClass())) {
                         setterCustom.set(clazz, field, setter, target, value, jdbcType, valueOriginal);
@@ -71,8 +68,8 @@ public class DefaultCanalOrmSetter implements CanalOrmSetter, ApplicationContext
             // 数字类型处理
             if (Number.class.isAssignableFrom(clazz) || clazz.isPrimitive()) {
                 // 时间对象转时间戳
-                if ((clazz == Long.class || clazz == long.class) && CanalReflection.isDateTimeType(obj)) {
-                    return (T) Long.valueOf(CanalReflection.extractTimestamp(obj));
+                if ((clazz == Long.class || clazz == long.class) && CanalDateUtil.isDateTimeType(obj)) {
+                    return (T) Long.valueOf(CanalDateUtil.extractTimestamp(obj));
                 }
                 String str = obj.toString();
                 if (clazz == Integer.class || clazz == int.class) {
@@ -92,8 +89,8 @@ public class DefaultCanalOrmSetter implements CanalOrmSetter, ApplicationContext
                 }
             }
 
-            if (CanalReflection.isDateTimeType(obj)) {
-                long timestamp = CanalReflection.extractTimestamp(obj);
+            if (CanalDateUtil.isDateTimeType(obj)) {
+                long timestamp = CanalDateUtil.extractTimestamp(obj);
                 try {
                     if (clazz == Date.class) {
                         return clazz.cast(new Date(timestamp));
@@ -129,8 +126,4 @@ public class DefaultCanalOrmSetter implements CanalOrmSetter, ApplicationContext
         }
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        DefaultCanalOrmSetter.applicationContext = applicationContext;
-    }
 }

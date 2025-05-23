@@ -2,12 +2,9 @@ package io.github.jxch.canal.client.orm;
 
 import io.github.jxch.canal.client.model.SimpleColumns;
 import io.github.jxch.canal.client.name.CanalColumn;
-import io.github.jxch.canal.client.reflection.CanalReflection;
+import io.github.jxch.canal.client.util.CanalSpringUtil;
 import io.github.jxch.canal.client.util.CanalStrings;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -19,8 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class CanalOrm implements ApplicationContextAware {
-    private static ApplicationContext applicationContext;
+public class CanalOrm  {
 
     @Autowired(required = false)
     private List<CanalOrmSetter> canalOrmSetters = Collections.emptyList();
@@ -55,7 +51,7 @@ public class CanalOrm implements ApplicationContextAware {
                         }
                     }
                     if (simpleColumns.hasName(name)) {
-                        String setterName = "set" + CanalReflection.capitalize(fieldName);
+                        String setterName = "set" + CanalStrings.capitalize(fieldName);
 
                         Method setter = null;
                         Class<?> setterParameterType = null;
@@ -103,13 +99,8 @@ public class CanalOrm implements ApplicationContextAware {
         return Holder.CANAL_ORM.orm(simpleColumns, clazz);
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        CanalOrm.applicationContext = applicationContext;
-    }
-
     public static class Holder {
-        public static final CanalOrm CANAL_ORM = applicationContext.getBean(CanalOrm.class);
+        public static final CanalOrm CANAL_ORM = CanalSpringUtil.getBean(CanalOrm.class);
     }
 
 }

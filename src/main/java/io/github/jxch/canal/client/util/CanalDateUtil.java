@@ -22,12 +22,14 @@ public class CanalDateUtil {
         for (String pattern : patterns) {
             try {
                 return LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern));
-            } catch (DateTimeParseException ignored) {}
+            } catch (DateTimeParseException ignored) {
+            }
         }
         // 尝试ISO标准格式
         try {
             return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
         throw new IllegalArgumentException("无法识别的日期格式: " + value);
     }
 
@@ -42,12 +44,14 @@ public class CanalDateUtil {
         for (String pattern : patterns) {
             try {
                 return LocalTime.parse(value, DateTimeFormatter.ofPattern(pattern));
-            } catch (DateTimeParseException ignored) {}
+            } catch (DateTimeParseException ignored) {
+            }
         }
         // 尝试 ISO 标准格式
         try {
             return LocalTime.parse(value, DateTimeFormatter.ISO_LOCAL_TIME);
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
         throw new IllegalArgumentException("无法识别的时间格式: " + value);
     }
 
@@ -73,17 +77,57 @@ public class CanalDateUtil {
         for (String pattern : patterns) {
             try {
                 return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(pattern));
-            } catch (DateTimeParseException ignored) {}
+            } catch (DateTimeParseException ignored) {
+            }
         }
         // ISO_LOCAL_DATE_TIME（yyyy-MM-ddTHH:mm:ss）
         try {
             return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
         // 如果是只有日期，补零时分秒
         try {
             return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay();
-        } catch (DateTimeParseException ignored) {}
+        } catch (DateTimeParseException ignored) {
+        }
         throw new IllegalArgumentException("无法识别的日期时间格式: " + value);
     }
 
+    /**
+     * 检查对象是否为时间类型
+     */
+    public static boolean isDateTimeType(Object obj) {
+        return obj instanceof java.util.Date ||
+                obj instanceof java.sql.Timestamp ||
+                obj instanceof java.time.Instant ||
+                obj instanceof java.time.LocalDateTime ||
+                obj instanceof java.time.LocalDate;
+    }
+
+    /**
+     * 从时间对象提取时间戳（毫秒）
+     */
+    public static long extractTimestamp(Object obj) {
+        if (obj instanceof java.util.Date) {
+            return ((java.util.Date) obj).getTime();
+        }
+        if (obj instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) obj).getTime();
+        }
+        if (obj instanceof java.time.Instant) {
+            return ((java.time.Instant) obj).toEpochMilli();
+        }
+        if (obj instanceof java.time.LocalDateTime) {
+            java.time.LocalDateTime ldt = (java.time.LocalDateTime) obj;
+            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            return ldt.atZone(zone).toInstant().toEpochMilli();
+        }
+        if (obj instanceof java.time.LocalDate) {
+            java.time.LocalDate ld = (java.time.LocalDate) obj;
+            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            return ld.atStartOfDay(zone).toInstant().toEpochMilli();
+        }
+
+        throw new IllegalArgumentException("Cannot extract timestamp from " + obj.getClass());
+    }
 }

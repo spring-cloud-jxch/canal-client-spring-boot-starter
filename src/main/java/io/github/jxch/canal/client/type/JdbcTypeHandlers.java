@@ -1,9 +1,7 @@
 package io.github.jxch.canal.client.type;
 
-import org.springframework.beans.BeansException;
+import io.github.jxch.canal.client.util.CanalSpringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.sql.JDBCType;
@@ -11,8 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class JdbcTypeHandlers implements ApplicationContextAware {
-    private static ApplicationContext applicationContext;
+public class JdbcTypeHandlers {
 
     @Autowired(required = false)
     private List<JdbcTypeHandler> typeHandlers = Collections.emptyList();
@@ -33,13 +30,8 @@ public class JdbcTypeHandlers implements ApplicationContextAware {
         return Hodler.INSTANCE.convert2javaType(jdbcType, value);
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        JdbcTypeHandlers.applicationContext = applicationContext;
-    }
-
     public static class Hodler {
-        public static final JdbcTypeHandlers INSTANCE = applicationContext.getBean(JdbcTypeHandlers.class);
+        public static final JdbcTypeHandlers INSTANCE = CanalSpringUtil.getBean(JdbcTypeHandlers.class);
     }
 
 }
